@@ -2,7 +2,6 @@ SignTalk: Sign Language Interpreter using Machine Learning
 
 SignTalk turns hand signs into text and spoken words in real time, using only a normal webcam. It recognises the full alphabet (A to Z) and five movement-based words, and it speaks every letter and word out loud with a natural AI voice. There is nothing to press while you use it.
 
-SignTalk screenshot
 
 Features
 Alphabet A to Z recognised from still hand shapes. Hold a sign for about a second and the letter is added to the sentence.
