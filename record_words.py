@@ -1,11 +1,3 @@
-"""Record movement words.
-
-Usage:  python record_words.py --labels HELLO THANKYOU SORRY PLEASE ILOVEYOU
-
-Keys:  R = record one clip (2 sec get-ready, then 2 sec of signing)
-       N = next word     P = previous word     Q = quit
-Record about 30 clips for each word.
-"""
 import argparse
 import math
 import os

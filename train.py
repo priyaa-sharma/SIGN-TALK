@@ -1,4 +1,3 @@
-"""Step 2: train the classifier on the collected landmark data."""
 import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier

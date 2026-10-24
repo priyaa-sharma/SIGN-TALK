@@ -1,4 +1,3 @@
-"""Train the word model from the recorded clips."""
 import glob
 import os
 

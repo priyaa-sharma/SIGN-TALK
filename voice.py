@@ -1,7 +1,3 @@
-"""Natural AI voice (Microsoft neural voices via edge-tts), played in the
-background so the camera never freezes. Needs internet.
-If edge-tts fails (e.g. no internet), it falls back to the basic Windows voice.
-"""
 import asyncio
 import ctypes
 import hashlib
@@ -9,12 +5,7 @@ import os
 import queue
 import threading
 
-# ---------- change the voice here ----------
 VOICE = "en-IN-NeerjaNeural"
-# Other voices to try:
-#   en-US-AriaNeural   en-US-JennyNeural   en-US-GuyNeural (male)
-#   en-GB-SoniaNeural  hi-IN-SwaraNeural (Hindi)
-# -------------------------------------------
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "voice_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -24,7 +15,6 @@ _fallback_engine = None
 
 
 def _make_mp3(text):
-    """Return the path of an mp3 for this text (cached after the first time)."""
     name = hashlib.md5((VOICE + "|" + text).encode("utf-8")).hexdigest() + ".mp3"
     path = os.path.join(CACHE_DIR, name)
     if not os.path.exists(path):
@@ -38,7 +28,7 @@ def _make_mp3(text):
 
 
 def _play_mp3(path):
-    mci = ctypes.windll.winmm.mciSendStringW      # built into Windows
+    mci = ctypes.windll.winmm.mciSendStringW
     mci("close vc", None, 0, 0)
     mci(f'open "{path}" type mpegvideo alias vc', None, 0, 0)
     mci("play vc wait", None, 0, 0)
@@ -74,7 +64,7 @@ def speak(text):
     """Say the text out loud (always on)."""
     if not text.strip():
         return
-    while not _q.empty():          # drop old waiting items so speech keeps up
+    while not _q.empty():
         try:
             _q.get_nowait()
         except queue.Empty:

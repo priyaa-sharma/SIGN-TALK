@@ -1,11 +1,3 @@
-"""SignTalk - real-time sign language interpreter: letters + words, with voice.
-
-LETTERS: hold a letter sign steady for ~1 second to add it to the sentence.
-         Special labels:  SPACE -> adds a space,  DEL -> deletes last character.
-WORDS:   hands-free - just sign a word anytime (needs the NONE class).
-VOICE:   automatic - every letter and word is spoken when it is added.
-Key: Q = quit. Everything else is automatic.
-"""
 import os
 import time
 from collections import Counter, deque
@@ -19,20 +11,20 @@ from voice import speak
 from words_common import (CLIP_SECONDS, WORD_DISPLAY, clip_to_sequence,
                           frame_features, sequence_to_vector)
 
-# ---------- make it yours: change these ----------
-APP_NAME = "SignTalk"                 # name shown at the top
-TITLE_FONT = [r"C:\Windows\Fonts\inkfree.ttf", r"C:\Windows\Fonts\segoepr.ttf"]  # handwriting style
-BODY_FONT = [r"C:\Windows\Fonts\segoeui.ttf", "arial.ttf"]                        # clean text
-PINK = (255, 181, 192)          # light pink: header, frame, status box (RGB)
-SOFT_PINK = (255, 240, 245)     # lightest pink: sentence box
-PLUM = (173, 20, 87)            # dark pink: text
-TITLE_COLOR = (0, 0, 0)         # colour of the SignTalk title
 
-# ---------- hands-free word settings ----------
-AUTO_CONF = 0.75        # how sure the model must be (0-1). Lower = easier to trigger
-NEED_AGREE = 2          # checks in a row that must agree before a word is accepted
-CHECK_EVERY = 0.4       # seconds between checks
-COOLDOWN = 2.0          # seconds to wait after a word before the next one
+APP_NAME = "SignTalk"                 
+TITLE_FONT = [r"C:\Windows\Fonts\inkfree.ttf", r"C:\Windows\Fonts\segoepr.ttf"]  
+BODY_FONT = [r"C:\Windows\Fonts\segoeui.ttf", "arial.ttf"]                        
+PINK = (255, 181, 192)          
+SOFT_PINK = (255, 240, 245)     
+PLUM = (173, 20, 87)            
+TITLE_COLOR = (0, 0, 0)         
+
+
+AUTO_CONF = 0.75        
+NEED_AGREE = 2          
+CHECK_EVERY = 0.4       
+COOLDOWN = 2.0          
 
 
 def load_font(paths, size):
@@ -64,15 +56,15 @@ def render_ui(frame, status, sentence):
     overlay = Image.new("RGBA", img.size, (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
 
-    # header band
+    
     od.rectangle([0, 0, W, 72], fill=PINK + (225,))
 
-    # status box (under the header)
+    
     status = fit_text(od, status, F_STATUS, W - 60)
     pw = od.textlength(status, font=F_STATUS) + 44
     od.rectangle([W / 2 - pw / 2, 82, W / 2 + pw / 2, 118], fill=PINK + (240,))
 
-    # sentence box (bottom)
+    
     shown = fit_text(od, sentence, F_SENT, W - 100)
     hint = not shown
     if hint:
@@ -89,24 +81,24 @@ def render_ui(frame, status, sentence):
         d.text((W / 2, H - 59), shown, font=F_STATUS, fill=(200, 150, 175), anchor="mm")
     else:
         d.text((W / 2, H - 59), shown, font=F_SENT, fill=PLUM, anchor="mm")
-    d.rectangle([0, 0, W - 1, H - 1], outline=PINK, width=6)   # frame
+    d.rectangle([0, 0, W - 1, H - 1], outline=PINK, width=6)   
     return cv2.cvtColor(np.array(img.convert("RGB")), cv2.COLOR_RGB2BGR)
 
 
 model = joblib.load("model.pkl")
 word_model = joblib.load("words_model.pkl") if os.path.exists("words_model.pkl") else None
 if word_model is not None:
-    word_model.n_jobs = 1          # faster for one prediction at a time
+    word_model.n_jobs = 1          
 auto_ok = word_model is not None and "NONE" in word_model.classes_
 tracker = HandTracker()
 cap = cv2.VideoCapture(0)
 
-WINDOW = deque(maxlen=12)      # smoothing window for letters
-HOLD_SECONDS = 1.0             # how long a letter must be held
+WINDOW = deque(maxlen=12)      
+HOLD_SECONDS = 1.0             
 MIN_CONF = 0.70
 sentence, current, since, added = "", None, time.time(), False
-word_note, note_until = "", 0.0     # word messages are shown for 3 seconds
-buf = deque()                       # last ~2 seconds of hand frames (hands-free)
+word_note, note_until = "", 0.0     
+buf = deque()                       
 last_check, last_auto_label, auto_streak = 0.0, None, 0
 cooldown_until, letters_paused_until = 0.0, 0.0
 
@@ -119,7 +111,7 @@ def add_word(label, p):
     if sentence and not sentence.endswith(" "):
         sentence += " "
     sentence += text + " "
-    speak(text)                                    # automatic voice
+    speak(text)                                    
     word_note, note_until = f"Output: {text} ({p:.0%})", t + 3
     cooldown_until = letters_paused_until = t + COOLDOWN
     buf.clear()
@@ -136,7 +128,7 @@ while True:
     now = time.time()
     pred, conf = None, 0.0
 
-    # ---------- hands-free word detection ----------
+    
     buf.append((now, frame_features(landmarks) if landmarks else None))
     while buf and now - buf[0][0] > CLIP_SECONDS:
         buf.popleft()
@@ -153,7 +145,7 @@ while True:
             i = int(np.argmax(probs))
             label, p = word_model.classes_[i], probs[i]
             if label != "NONE" and p >= 0.5:
-                letters_paused_until = now + 1.2    # a word may be in progress
+                letters_paused_until = now + 1.2    
             if label != "NONE" and p >= AUTO_CONF:
                 if label == last_auto_label:
                     auto_streak += 1
@@ -165,7 +157,7 @@ while True:
             else:
                 last_auto_label, auto_streak = None, 0
 
-    # ---------- letter mode ----------
+    
     if landmarks:
         probs = model.predict_proba([extract_features(landmarks)])[0]
         i = int(np.argmax(probs))
@@ -177,7 +169,7 @@ while True:
 
     stable = Counter(WINDOW).most_common(1)[0][0] if WINDOW else None
     if now < letters_paused_until:
-        current, since, added = stable, now, False     # restart the hold timer
+        current, since, added = stable, now, False     
     elif stable != current:
         current, since, added = stable, now, False
     elif current and not added and now - since >= HOLD_SECONDS:
@@ -187,10 +179,10 @@ while True:
             sentence = sentence[:-1]
         else:
             sentence += current if len(current) == 1 else f" {current} "
-            speak(WORD_DISPLAY.get(current, current))      # automatic voice
+            speak(WORD_DISPLAY.get(current, current))      
         added = True
 
-    # ---------- screen ----------
+    
     if now < note_until:
         status = word_note
     elif auto_ok:

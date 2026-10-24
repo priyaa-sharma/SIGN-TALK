@@ -1,13 +1,3 @@
-"""Step 1: record training samples from your webcam.
-
-Usage:  python collect_data.py --labels A B C D E HELLO THANKS SPACE DEL
-
-Keys:   S = start/stop recording the current label
-        N = next label      P = previous label
-        Q = quit
-Tip: record 200-300 samples per sign; move your hand a little (angle,
-distance, position) while recording so the model generalises.
-"""
 import argparse
 import csv
 import os
