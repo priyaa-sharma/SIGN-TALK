@@ -4,7 +4,6 @@ SEQ_LEN = 30            # every clip is squeezed to 30 frames
 CLIP_SECONDS = 2.0      # how long you sign for
 COUNTDOWN = 2.0         # get-ready time before each clip
 
-# how a word label is shown in the sentence
 WORD_DISPLAY = {"THANKYOU": "THANK YOU", "ILOVEYOU": "I LOVE YOU"}
 
 
