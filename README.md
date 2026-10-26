@@ -9,7 +9,6 @@ Words with movement (HELLO, THANKYOU, SORRY, PLEASE, ILOVEYOU), recognised hands
 Automatic AI voice. Every letter and word is spoken as soon as it is detected, using Microsoft neural voices (edge-tts).
 Train it yourself. Record your own signs from the webcam and retrain in seconds.
 
-
 ## How it works
 Webcam
   -> MediaPipe HandLandmarker (21 hand landmarks)
