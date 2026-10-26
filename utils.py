@@ -14,13 +14,14 @@ MODEL_URL = (
     "hand_landmarker/float16/1/hand_landmarker.task"
 )
 
+# Pairs of landmark indices that form the hand skeleton
 HAND_CONNECTIONS = [
-    (0, 1), (1, 2), (2, 3), (3, 4),
-    (0, 5), (5, 6), (6, 7), (7, 8),
-    (5, 9), (9, 10), (10, 11), (11, 12),
-    (9, 13), (13, 14), (14, 15), (15, 16),
-    (13, 17), (17, 18), (18, 19), (19, 20),
-    (0, 17),
+    (0, 1), (1, 2), (2, 3), (3, 4),            # thumb
+    (0, 5), (5, 6), (6, 7), (7, 8),            # index
+    (5, 9), (9, 10), (10, 11), (11, 12),       # middle
+    (9, 13), (13, 14), (14, 15), (15, 16),     # ring
+    (13, 17), (17, 18), (18, 19), (19, 20),    # pinky
+    (0, 17),                                   # palm edge
 ]
 
 
@@ -53,7 +54,7 @@ class HandTracker:
         self._last_ts = ts
         result = self.detector.detect_for_video(image, ts)
         if result.hand_landmarks:
-            return result.hand_landmarks[0]
+            return result.hand_landmarks[0]   # list of 21 landmarks
         return None
 
 
@@ -61,9 +62,11 @@ def draw_hand(frame, landmarks):
     h, w = frame.shape[:2]
     pts = [(int(lm.x * w), int(lm.y * h)) for lm in landmarks]
     for a, b in HAND_CONNECTIONS:
-        cv2.line(frame, pts[a], pts[b], (203, 150, 255), 2)
+        cv2.line(frame, pts[a], pts[b], (0, 0, 0), 5)            # black outline
+        cv2.line(frame, pts[a], pts[b], (208, 208, 209), 2)      # light grey line
     for p in pts:
-        cv2.circle(frame, p, 5, (147, 20, 255), -1)
+        cv2.circle(frame, p, 6, (0, 0, 0), -1)                   # black outline
+        cv2.circle(frame, p, 4, (134, 134, 152), -1)             # taupe dot
 
 
 def extract_features(landmarks):
