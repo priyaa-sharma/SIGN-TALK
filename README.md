@@ -1,15 +1,16 @@
-SignTalk: Sign Language Interpreter using Machine Learning
+## SignTalk: Sign Language Interpreter using Machine Learning
 
 SignTalk turns hand signs into text and spoken words in real time, using only a normal webcam. It recognises the full alphabet (A to Z) and five movement-based words, and it speaks every letter and word out loud with a natural AI voice. There is nothing to press while you use it.
 
 
-Features
+## Features
 Alphabet A to Z recognised from still hand shapes. Hold a sign for about a second and the letter is added to the sentence.
 Words with movement (HELLO, THANKYOU, SORRY, PLEASE, ILOVEYOU), recognised hands-free. Just sign them whenever you like.
 Automatic AI voice. Every letter and word is spoken as soon as it is detected, using Microsoft neural voices (edge-tts).
 Train it yourself. Record your own signs from the webcam and retrain in seconds.
 
-How it works
+
+## How it works
 Webcam
   -> MediaPipe HandLandmarker (21 hand landmarks)
   -> Letters: normalise 63 features -> Random Forest -> smoothing -> hold 1 s -> letter
@@ -17,7 +18,7 @@ Webcam
   -> text on screen + AI voice
 
 
-Setup
+##Setup
 
 Requires Python 3.10 or newer and a webcam. The voice playback and fonts use Windows features, so the app is written for Windows.
 
@@ -28,7 +29,7 @@ pip install -r requirements.txt
 
 The first run downloads the hand landmark model (about 8 MB) automatically, and the AI voice needs an internet connection.
 
-Usage
+## Usage
 
 1. Record the letters (about 200 to 300 samples per sign; press S to start and stop, N for the next letter, Q to quit)
 
@@ -59,7 +60,7 @@ The signs are ASL. Indian Sign Language and other sign languages use different s
 The AI voice needs an internet connection.
 
 
-Future work
+## Future work
 
 Replace the word model with an LSTM over landmark sequences
 Hindi output and Indian Sign Language (ISL) support
@@ -68,4 +69,4 @@ Compare more models (SVM, KNN, MLP) and test with more signers
 A web or mobile version
 
 
-Tech stack: Python, MediaPipe, OpenCV, scikit-learn, Pillow, edge-tts
+## Tech stack: Python, MediaPipe, OpenCV, scikit-learn, Pillow, edge-tts
