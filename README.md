@@ -1,3 +1,5 @@
+
+
 ## SignTalk: Sign Language Interpreter using Machine Learning
 
 SignTalk turns hand signs into text and spoken words in real time, using only a normal webcam. It recognises the full alphabet (A to Z) and five movement-based words, and it speaks every letter and word out loud with a natural AI voice. There is nothing to press while you use it.
@@ -9,6 +11,15 @@ Words with movement (HELLO, THANKYOU, SORRY, PLEASE, ILOVEYOU), recognised hands
 Automatic AI voice. Every letter and word is spoken as soon as it is detected, using Microsoft neural voices (edge-tts).
 Train it yourself. Record your own signs from the webcam and retrain in seconds.
 
+<<<<<<< HEAD
+=======
+## WORKING 
+
+https://github.com/user-attachments/assets/a24c0c7b-8b6b-4566-a791-6be3590a682b
+
+
+
+>>>>>>> a7202ba7d39be1f2dac75f6baeb6a197b7bf6196
 ## How it works
 Webcam
   -> MediaPipe HandLandmarker (21 hand landmarks)
