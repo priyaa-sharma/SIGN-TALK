@@ -4,7 +4,11 @@ SEQ_LEN = 30            # every clip is squeezed to 30 frames
 CLIP_SECONDS = 2.0      # how long you sign for
 COUNTDOWN = 2.0         # get-ready time before each clip
 
-WORD_DISPLAY = {"THANKYOU": "THANK YOU", "ILOVEYOU": "I LOVE YOU"}
+WORD_DISPLAY = {
+    "THANKS": "THANK YOU",
+    "THANKYOU": "THANK YOU",
+    "ILOVEYOU": "I LOVE YOU",
+}
 
 
 def frame_features(landmarks):

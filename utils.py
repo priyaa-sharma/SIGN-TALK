@@ -25,7 +25,7 @@ HAND_CONNECTIONS = [
 ]
 
 
-def _ensure_model():
+def ensure_hand_model():
     if not os.path.exists(MODEL_PATH):
         print("Downloading hand landmark model (one time, ~8 MB)...")
         urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
@@ -35,7 +35,7 @@ class HandTracker:
     """Finds one hand in a BGR webcam frame and returns its 21 landmarks."""
 
     def __init__(self):
-        _ensure_model()
+        ensure_hand_model()
         options = vision.HandLandmarkerOptions(
             base_options=mp_python.BaseOptions(model_asset_path=MODEL_PATH),
             running_mode=vision.RunningMode.VIDEO,

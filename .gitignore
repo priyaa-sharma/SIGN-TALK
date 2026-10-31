@@ -1,4 +1,7 @@
 /.venv
 /hand_landmarker.task
+/pose_landmarker_lite.task
 /voice_cache
+/data/signmatic/
+/signmatic_model.pkl
 /__pycache__

@@ -10,6 +10,7 @@ from utils import HandTracker, extract_features, draw_hand
 from voice import speak
 from words_common import (CLIP_SECONDS, WORD_DISPLAY, clip_to_sequence,
                           frame_features, sequence_to_vector)
+from signmatic import SignMaticTracker, pool_sequences
 
 APP_NAME = "SignTalk"
 TITLE_FONT = [r"C:\Windows\Fonts\bahnschrift.ttf", r"C:\Windows\Fonts\bahnschrift.ttf"]
@@ -88,8 +89,16 @@ model = joblib.load("model.pkl")
 word_model = joblib.load("words_model.pkl") if os.path.exists("words_model.pkl") else None
 if word_model is not None:
     word_model.n_jobs = 1
+signmatic_model = (
+    joblib.load("signmatic_model.pkl")
+    if os.path.exists("signmatic_model.pkl") else None
+)
+if signmatic_model is not None:
+    signmatic_model.n_jobs = 1
 auto_ok = word_model is not None and "NONE" in word_model.classes_
+signmatic_ok = signmatic_model is not None
 tracker = HandTracker()
+pose_tracker = SignMaticTracker() if signmatic_ok else None
 cap = cv2.VideoCapture(0)
 
 WINDOW = deque(maxlen=12)
@@ -98,6 +107,7 @@ MIN_CONF = 0.70
 sentence, current, since, added = "", None, time.time(), False
 word_note, note_until = "", 0.0
 buf = deque()
+signmatic_buf = deque(maxlen=30)
 last_check, last_auto_label, auto_streak = 0.0, None, 0
 cooldown_until, letters_paused_until = 0.0, 0.0
 
@@ -120,6 +130,7 @@ while True:
     ok, frame = cap.read()
     if not ok:
         break
+    raw_frame = frame
     frame = cv2.flip(frame, 1)
     landmarks = tracker.find(frame)
     if landmarks:
@@ -130,29 +141,57 @@ while True:
     buf.append((now, frame_features(landmarks) if landmarks else None))
     while buf and now - buf[0][0] > CLIP_SECONDS:
         buf.popleft()
+    if pose_tracker is not None:
+        signmatic_buf.append(pose_tracker.frame_features(raw_frame))
 
-    if (auto_ok and now >= cooldown_until
+    if ((auto_ok or signmatic_ok) and now >= cooldown_until
             and now - last_check >= CHECK_EVERY
-            and len(buf) > 15 and buf[-1][0] - buf[0][0] >= 1.5):
+            and ((auto_ok and len(buf) > 15
+                  and buf[-1][0] - buf[0][0] >= 1.5)
+                 or (signmatic_ok and len(signmatic_buf) == 30))):
         last_check = now
-        seq = clip_to_sequence([f for _, f in buf])
-        if seq is None:
+        legacy_candidate = None
+        signmatic_candidate = None
+        if auto_ok and len(buf) > 15 and buf[-1][0] - buf[0][0] >= 1.5:
+            seq = clip_to_sequence([f for _, f in buf])
+            if seq is not None:
+                probs = word_model.predict_proba([sequence_to_vector(seq)])[0]
+                i = int(np.argmax(probs))
+                label, p = word_model.classes_[i], probs[i]
+                if label != "NONE":
+                    legacy_candidate = (str(label), float(p))
+                    if p >= 0.5:
+                        letters_paused_until = now + 1.2
+
+        if signmatic_ok and len(signmatic_buf) == 30:
+            features = pool_sequences(
+                np.asarray(signmatic_buf, dtype=np.float32)[None, ...]
+            )
+            probs = signmatic_model.predict_proba(features)[0]
+            i = int(np.argmax(probs))
+            label, p = str(signmatic_model.classes_[i]).upper(), float(probs[i])
+            if label != "IDLE":
+                signmatic_candidate = (label, p)
+                if p >= 0.5:
+                    letters_paused_until = now + 1.2
+
+        candidate = None
+        if legacy_candidate and legacy_candidate[1] >= AUTO_CONF:
+            candidate = ("legacy", *legacy_candidate)
+        elif signmatic_candidate and signmatic_candidate[1] >= AUTO_CONF:
+            candidate = ("signmatic", *signmatic_candidate)
+
+        if candidate is None:
             last_auto_label, auto_streak = None, 0
         else:
-            probs = word_model.predict_proba([sequence_to_vector(seq)])[0]
-            i = int(np.argmax(probs))
-            label, p = word_model.classes_[i], probs[i]
-            if label != "NONE" and p >= 0.5:
-                letters_paused_until = now + 1.2
-            if label != "NONE" and p >= AUTO_CONF:
-                if label == last_auto_label:
-                    auto_streak += 1
-                else:
-                    last_auto_label, auto_streak = label, 1
-                if auto_streak >= NEED_AGREE:
-                    add_word(label, p)
-                    last_auto_label, auto_streak = None, 0
+            source, label, p = candidate
+            candidate_key = f"{source}:{label}"
+            if candidate_key == last_auto_label:
+                auto_streak += 1
             else:
+                last_auto_label, auto_streak = candidate_key, 1
+            if auto_streak >= NEED_AGREE:
+                add_word(label, p)
                 last_auto_label, auto_streak = None, 0
 
     if landmarks:
@@ -181,12 +220,12 @@ while True:
 
     if now < note_until:
         status = word_note
-    elif auto_ok:
+    elif auto_ok or signmatic_ok:
         status = f"Output: {pred or '-'}  ({conf:.0%})"
-    elif word_model is None:
+    elif word_model is None and signmatic_model is None:
         status = f"Output: {pred or '-'}  ({conf:.0%})   |   run train_words.py"
     else:
-        status = f"Output: {pred or '-'}  ({conf:.0%})   |   record NONE clips"
+        status = f"Output: {pred or '-'}  ({conf:.0%})   |   record NONE clips or run train_signmatic.py"
     frame = render_ui(frame, status, sentence)
     cv2.imshow(APP_NAME, frame)
 
@@ -195,3 +234,5 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+if pose_tracker is not None:
+    pose_tracker.close()

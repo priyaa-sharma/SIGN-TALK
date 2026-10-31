@@ -56,6 +56,27 @@ python train_words.py
 
 For NONE, do things that are not words, with your hand in view: hold letter signs, wave, move your hand around, rest it, lift it and lower it.
 
+### Optional: add the SignMatic word vocabulary
+
+The Kaggle SignMatic dataset contains 50 isolated ASL words plus an `Idle` class.
+It adds word recognition, not recognition of 50 complete phrases. After
+extracting it to `data/signmatic/SignMatic_ASL_Keypoint_Dataset_Kaggle`, train
+the additional classifier:
+
+```powershell
+python train_signmatic.py
+```
+
+The training script reports accuracy on a random holdout of real samples; this
+is not a signer-independent evaluation. Then start the app as usual with
+`python app.py`. The first run downloads a MediaPipe pose landmark model. The
+existing alphabet and locally recorded phrase models remain available.
+
+The dataset is licensed under CC BY 4.0. Attribute Joe Elie Sarkis and Ali
+Mohamad Yaghi, “SignMatic ASL Keypoint Dataset: 50 Words and Idle” (2026).
+See the [Kaggle dataset](https://www.kaggle.com/datasets/joesarkis/signmatic-asl-keypoint-dataset-50-words-and-idle)
+for its documentation and license.
+
 3. Run it
 
 bash
